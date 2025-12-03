@@ -192,4 +192,4 @@ Este repositorio forma parte de la entrega del Proyecto Final – Agente Logíst
 - Flujo listo para importar en n8n.
 - Documentación clara y estructurada.
 
-Para entender la teoría, arquitectura, justificación, resultados y análisis del sistema, consulta el Informe Técnico Final, el cual acompaña este código fuente como parte del primer entregable.
+Para entender la teoría, arquitectura, justificación, resultados y análisis del sistema, consulte el Informe Técnico Final.
