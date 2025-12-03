@@ -27,7 +27,7 @@ agente-logistico-inteligente/
    ├─ caso2_combustible_insuficiente.ps1
    └─ caso3_exito_total.ps1
 
-## ⚙️ Dependencias y servicios utilizados
+## Dependencias y servicios utilizados
 
 El flujo utiliza los siguientes servicios externos:
 
@@ -47,7 +47,7 @@ Además, usa capacidades internas de **n8n**:
 - Nodo **Gmail**: envía correos de advertencia.
 
 ---
-## 🔧 Configuración requerida en n8n
+## Configuración requerida en n8n
 
 Para que el flujo funcione correctamente, debes configurar:
 
