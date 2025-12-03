@@ -1,0 +1,497 @@
+{
+  "name": "Logistics Planner (Google Maps + Sheets)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "logistics-plan",
+        "options": {
+          "responseData": "allEntries"
+        }
+      },
+      "id": "6b4ecd58-6f50-48e1-aec7-aade34c12631",
+      "name": "Webhook Logistics",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -2144,
+        64
+      ],
+      "webhookId": "logistics-plan"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "90a6c827-b5ba-4d41-b154-c3231a015a2c",
+              "leftValue": "={{$json.flags.capacity_ok}}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "f65384f0-064b-42a0-8881-aa0ccf5b000d",
+      "name": "IF Capacity OK?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -880,
+        -128
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "d0cefb70-da1c-411d-9d6a-d79df4c2e1f0",
+              "leftValue": "={{$json.flags.windows_ok}}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "1e1da668-5533-4281-b6fe-4b184f744e81",
+      "name": "IF Windows OK?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -512,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "112z6e8cpVZQXvdNIuJ0ZJ1cpZKRxy9P8O3LAYikQoWg",
+          "mode": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/112z6e8cpVZQXvdNIuJ0ZJ1cpZKRxy9P8O3LAYikQoWg/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "fd9e3f05-01e0-46eb-b631-b9eb66ab58e1",
+      "name": "Google Sheets - Append Plan",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -128,
+        -224
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "WFwio5o5VCoiKG9D",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "8329438963",
+        "text": "=✅ *Plan de Ruta Generado con Éxito*  \n\n🚚 *Vehículo:* {{$json.vehicle}}  \n🛑 *Paradas programadas:* {{$json.metrics.n_paradas}}  \n📏 *Distancia total:* {{$json.metrics.total_km}} km  \n📦 *Nivel de ocupación:* {{$json.metrics.ocupacion_vol_pct}} % (Volumen) / {{$json.metrics.ocupacion_peso_pct}} % (Peso)  \n\n📝 La ruta fue optimizada considerando capacidades, ventanas horarias y recursos disponibles.  \nEstá lista para su ejecución 🛣️\n",
+        "additionalFields": {}
+      },
+      "id": "7e3d45be-b3ce-43e8-a831-241be6e4f338",
+      "name": "Telegram Notify (Ops)",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        112,
+        -224
+      ],
+      "webhookId": "874f87ae-16d4-4f5d-8a6d-3caa52ed6517",
+      "credentials": {
+        "telegramApi": {
+          "id": "x16dpF0nXDHIncTs",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "8329438963",
+        "text": "=⚠️ **ALERTA: CAPACIDAD EXCEDIDA**\n\nEl plan para el vehículo **{{$json.vehicle}}** no se pudo generar. La carga supera los límites de capacidad.\n\n**Ocupación Calculada:**\n- **Volumen:** {{$json.metrics.ocupacion_vol_pct}}%\n- **Peso:** {{$json.metrics.ocupacion_peso_pct}}%\n\n*Acción requerida: Revisar las órdenes o asignar un vehículo más grande.*",
+        "additionalFields": {}
+      },
+      "id": "96359bec-fb7c-4cf1-af9a-43cc22af3b18",
+      "name": "Telegram Alert (Capacity)",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        -720,
+        160
+      ],
+      "webhookId": "d4c0799a-4a87-45c0-8102-2a90fe6cc31b",
+      "credentials": {
+        "telegramApi": {
+          "id": "x16dpF0nXDHIncTs",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "8329438963",
+        "text": "=⏱️ **ALERTA: VENTANAS HORARIAS INCUMPLIDAS**\n\nEl plan para el vehículo **{{$json.vehicle}}** no es viable. La ruta calculada no cumple con los horarios de entrega de al menos una orden.\n\n*Acción requerida: Considerar la replanificación o ajustar las prioridades de entrega.*",
+        "additionalFields": {}
+      },
+      "id": "cc3d3af5-a128-4cb5-8722-7326eeaa6e54",
+      "name": "Telegram Alert (Windows)",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        -304,
+        208
+      ],
+      "webhookId": "a5bdce75-2629-4fd6-9645-9913ede58146",
+      "credentials": {
+        "telegramApi": {
+          "id": "x16dpF0nXDHIncTs",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// --- CONFIGURACIÓN ---\nconst OPENCAGE_API_KEY = 'd391eb7be9fe4f7da182b16cee1dda02';\nconst OPENROUTESERVICE_API_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjA1Y2I2YmNhMTZiZTRiZDBiNGZlMDkzOWY4YjRmNTYzIiwiaCI6Im11cm11cjY0In0=';\nconst MAX_HORAS_CONDUCCION = 4.5; // Límite de horas antes de un descanso\n\n// --- INICIO DEL CÓDIGO ---\nconst webhookData = items[0].json.body;\nconst veh = webhookData.vehiculos[0];\nconst orders = webhookData.ordenes;\n\nconst locations = [];\nconst vehicleCoords = [veh.ubik[1], veh.ubik[0]];\nlocations.push(vehicleCoords);\n\nfor (const order of orders) {\n    try {\n        const geoResponse = await this.helpers.httpRequest({\n            url: `https://api.opencagedata.com/geocode/v1/json`,\n            qs: { q: order.destino, key: OPENCAGE_API_KEY, limit: 1 },\n            json: true\n        });\n        if (geoResponse.results && geoResponse.results.length > 0) {\n            const coords = geoResponse.results[0].geometry;\n            order._coords = [coords.lng, coords.lat];\n            locations.push(order._coords);\n        } else {\n             throw new Error(`Dirección NO encontrada: ${order.destino}`);\n        }\n    } catch (error) {\n        throw new Error(`Fallo al geocodificar: ${order.destino}. Error: ${error.message}`);\n    }\n}\n\nlet matrixData;\ntry {\n    const matrixResponse = await this.helpers.httpRequest({\n        method: 'POST',\n        url: 'https://api.openrouteservice.org/v2/matrix/driving-car',\n        headers: { 'Authorization': OPENROUTESERVICE_API_KEY },\n        body: { locations: locations, metrics: [\"distance\", \"duration\"], sources: [0] },\n        json: true\n    });\n    matrixData = matrixResponse;\n} catch (error) {\n    throw new Error(`Fallo al llamar a OpenRouteService: ${error.message}`);\n}\n\nif (!matrixData || !matrixData.durations || !matrixData.distances) {\n    throw new Error('Respuesta de OpenRouteService inesperada');\n}\n\nconst durations = matrixData.durations[0];\nconst distances = matrixData.distances[0];\n\nconst enriched = orders.map((o, i) => ({\n    ...o,\n    _dur_s: durations[i + 1] || 0,\n    _dist_m: distances[i + 1] || 0,\n}));\n\nenriched.sort((a, b) => {\n    if ((b.prioridad ?? 0) !== (a.prioridad ?? 0)) return (b.prioridad ?? 0) - (a.prioridad ?? 0);\n    return (a._dur_s ?? 0) - (b._dur_s ?? 0);\n});\n\nconst totalVol = enriched.reduce((s, o) => s + (o.vol || 0), 0);\nconst totalPeso = enriched.reduce((s, o) => s + (o.peso || 0), 0);\nconst capacityOk = (totalVol <= (veh.cap_vol || Infinity)) && (totalPeso <= (veh.cap_peso || Infinity));\n\nlet tAcc = 0;\nlet windowsOk = true;\nconst plan = [];\nconst now = new Date();\n\nfor (const o of enriched) {\n    const etaMs = now.getTime() + (tAcc + (o._dur_s || 0)) * 1000;\n    const eta = new Date(etaMs);\n    let windowOk = true;\n    if (o.ventana && o.ventana.ini && o.ventana.fin) {\n        const [hi, mi] = String(o.ventana.ini).split(':').map(Number);\n        const [hf, mf] = String(o.ventana.fin).split(':').map(Number);\n        const today = new Date(now);\n        const wStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hi || 0, mi || 0, 0);\n        const wEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hf || 0, mf || 0, 0);\n        const tolMs = (wEnd - wStart) * 0.05;\n        if (eta.getTime() > (wEnd.getTime() + tolMs)) {\n            windowOk = false;\n            windowsOk = false;\n        }\n    }\n    plan.push({\n        id: o.id,\n        destino: o.destino,\n        distancia_km: (o._dist_m || 0) / 1000,\n        dur_min: (o._dur_s || 0) / 60,\n        eta_iso: eta.toISOString(),\n        ventana_ok: windowOk\n    });\n    tAcc += (o._dur_s || 0);\n}\n\nconst totalKm = plan.reduce((s, p) => s + (p.distancia_km || 0), 0);\nconst totalMin = tAcc / 60; // Duración total en minutos\nconst occVol = (totalVol / (veh.cap_vol || 1)) * 100;\nconst occPeso = (totalPeso / (veh.cap_peso || 1)) * 100;\n\n// 5. Validación de Recursos del Vehículo\nconst combustible_necesario = totalKm / (veh.consumo_km_l || 10);\nconst fuelOk = (veh.combustible_actual || 0) >= combustible_necesario;\n\nconst totalHorasRuta = totalMin / 60;\nconst horas_totales_conductor = (veh.horas_conducidas_actuales || 0) + totalHorasRuta;\nconst driverHoursOk = horas_totales_conductor <= MAX_HORAS_CONDUCCION;\n\nreturn [{\n    json: {\n        vehicle: veh.id,\n        metrics: {\n            total_km: Number(totalKm.toFixed(2)),\n            ocupacion_vol_pct: Number(occVol.toFixed(1)),\n            ocupacion_peso_pct: Number(occPeso.toFixed(1)),\n            n_paradas: plan.length,\n            combustible_necesario: Number(combustible_necesario.toFixed(1)),\n            combustible_actual: veh.combustible_actual,\n            horas_totales_conductor: Number(horas_totales_conductor.toFixed(1)),\n            max_horas_conduccion: MAX_HORAS_CONDUCCION\n        },\n        flags: {\n            capacity_ok: capacityOk,\n            windows_ok: windowsOk,\n            fuel_ok: fuelOk,\n            driver_hours_ok: driverHoursOk\n        },\n        plan\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1856,
+        64
+      ],
+      "id": "162ef880-d026-4765-93ba-4cd39f29a909",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ce6a6d8f-2e7e-41bc-a89e-4e028ffc5e84",
+              "leftValue": "={{$json.flags.fuel_ok}}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1568,
+        -32
+      ],
+      "id": "5ae91278-05c2-4fed-a754-e810853d4d22",
+      "name": "IF fuel ok?"
+    },
+    {
+      "parameters": {
+        "chatId": "8329438963",
+        "text": "=⛽️ **ALERTA: COMBUSTIBLE INSUFICIENTE**\n\nEl plan para el vehículo **{{$json.vehicle}}** requiere **{{$json.metrics.combustible_necesario}} L**, pero solo hay **{{$json.metrics.combustible_actual}} L** disponibles.\n\n*Acción requerida: Repostar combustible antes de iniciar la ruta.*",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1392,
+        112
+      ],
+      "id": "fb9a27d8-5f0b-4918-ab4c-d9284c5b4d9c",
+      "name": "Telegram Alert (Fuel)",
+      "webhookId": "8df94d62-9555-49bd-8f61-5ed5ab799529",
+      "credentials": {
+        "telegramApi": {
+          "id": "x16dpF0nXDHIncTs",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e29e1789-6ca0-4bb6-8e41-313be629fe9d",
+              "leftValue": "={{$json.flags.driver_hours_ok}}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1296,
+        -96
+      ],
+      "id": "cbcf3478-1ddd-453b-b62d-16a4958dda77",
+      "name": "IF Driver capacity"
+    },
+    {
+      "parameters": {
+        "chatId": "8329438963",
+        "text": "=🧑‍✈️ **ALERTA: LÍMITE DE CONDUCCIÓN EXCEDIDO**\n\nEl plan para el vehículo **{{$json.vehicle}}** resultaría en un total de **{{$json.metrics.horas_totales_conductor}} horas** de conducción, superando el límite de **{{$json.metrics.max_horas_conduccion}} horas**.\n\n*Acción requerida: Asignar un nuevo conductor o dividir la ruta.*",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1104,
+        32
+      ],
+      "id": "a68fc7f7-057c-429d-8eb8-6f7f8385221a",
+      "name": "Telegram Alert (Driver)",
+      "webhookId": "e8ff6d02-b68f-460e-8fa0-1ec145e9f043",
+      "credentials": {
+        "telegramApi": {
+          "id": "x16dpF0nXDHIncTs",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "jorgemoralesblanco915@hotmail.com",
+        "subject": "=Alerta de Planificación: Capacidad Excedida en Vehículo {{$json.vehicle}}",
+        "message": "=⚠️ **Alerta de Planificación: Capacidad Excedida**\n\nSe ha intentado generar una ruta para el vehículo **{{$json.vehicle}}**, pero ha fallado debido a que la carga supera los límites de capacidad.\n\n**Detalles del Problema:**\n* **Ocupación de Volumen Calculada:** {{$json.metrics.ocupacion_vol_pct}}%\n* **Ocupación de Peso Calculada:** {{$json.metrics.ocupacion_peso_pct}}%\n\n**Acción Requerida:**\nPor favor, revise las órdenes asignadas a esta ruta. Es necesario reasignar algunas entregas a otro vehículo o utilizar una unidad con mayor capacidad.\n\n*Este es un mensaje automático del Agente de Optimización Logística.*",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -672,
+        16
+      ],
+      "id": "da21fb6f-2fa7-49b0-8d7d-06d6db38d21f",
+      "name": "Send a message",
+      "webhookId": "94464aa3-dd8d-4c33-a7e0-6a5878c9dd5d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YNHnqdlhwMunEBiI",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "jorgemoralesblanco915@hotmail.com",
+        "subject": "=Alerta de Planificación: Incumplimiento de Ventana Horaria en Vehículo {{$json.vehicle}}",
+        "message": "=⏱️ **Alerta de Planificación: Incumplimiento de Ventanas Horarias**\n\nSe ha generado una ruta para el vehículo **{{$json.vehicle}}**, pero el plan no es viable porque no se pueden cumplir los horarios de entrega de al menos una de las órdenes.\n\n**Detalles del Problema:**\nEl tiempo estimado de llegada (ETA) para una o más paradas cae fuera de la ventana de entrega especificada por el cliente.\n\n**Acción Requerida:**\nSe recomienda iniciar un proceso de replanificación. Considere ajustar la secuencia de paradas, notificar al cliente sobre un posible retraso o reasignar la orden a una ruta diferente.\n\n*Este es un mensaje automático del Agente de Optimización Logística.*",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -272,
+        32
+      ],
+      "id": "d8fd5cc6-4154-4711-b94a-7684ca348328",
+      "name": "Send a message1",
+      "webhookId": "94464aa3-dd8d-4c33-a7e0-6a5878c9dd5d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YNHnqdlhwMunEBiI",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "IF Capacity OK?": {
+      "main": [
+        [
+          {
+            "node": "IF Windows OK?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram Alert (Capacity)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Windows OK?": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets - Append Plan",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram Alert (Windows)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets - Append Plan": {
+      "main": [
+        [
+          {
+            "node": "Telegram Notify (Ops)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Logistics": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "IF fuel ok?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF fuel ok?": {
+      "main": [
+        [
+          {
+            "node": "IF Driver capacity",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram Alert (Fuel)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Driver capacity": {
+      "main": [
+        [
+          {
+            "node": "IF Capacity OK?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram Alert (Driver)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7f07256b-fc89-4abd-978b-b64d2348b356",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4ddf5b87d2cccea7904f6a3f17500da2720fe5018fca85e2e7ad4aa1a15ceea1"
+  },
+  "id": "CtA4pTJ3TwfELCm7",
+  "tags": []
+}
